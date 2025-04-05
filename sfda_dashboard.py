@@ -1,80 +1,68 @@
+
+# login.py — Simple login logic
+
+import streamlit as st
+
+# --- User Login Section ---
+def login():
+    st.sidebar.header("🔐 Login Panel")
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
+    login_button = st.sidebar.button("Login")
+
+    if login_button:
+        if username == "basier_admin" and password == "sfda2024":
+            st.session_state["authenticated"] = True
+            st.success("✅ Login successful.")
+        else:
+            st.session_state["authenticated"] = False
+            st.error("❌ Incorrect username or password.")
+
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+
+if not st.session_state["authenticated"]:
+    login()
+    st.stop()
+
+
+# --- Below is the continuation of the main dashboard logic ---
+
+
 import streamlit as st
 import pandas as pd
-from PIL import Image
-from login import login
 
-# ✅ يجب أن يكون أول شيء في الكود
-st.set_page_config(page_title="SFDA Registration Dashboard – MLAS201", layout="wide")
+# --------- User Login ---------
+def login():
+    st.sidebar.title("🔐 Login Panel")
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
+    login_btn = st.sidebar.button("Login")
 
-# 🎨 تحميل التنسيق
-with open("style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    if login_btn:
+        if username == "basier_admin" and password == "sfda2024":
+            st.session_state["authenticated"] = True
+            st.success("✅ Login successful.")
+        else:
+            st.error("❌ Incorrect credentials")
 
-# 🔐 تسجيل الدخول
+    return st.session_state.get("authenticated", False)
+
+# --------- Run App ---------
+def main_app():
+    st.set_page_config(page_title="SFDA Dashboard", layout="wide")
+
+    st.title("📊 SFDA Device Registration RegCard – RA-KSA-2025-041")
+    st.markdown("✅ You are now logged in. Welcome to the dashboard.")
+    
+    # Placeholder for loading data or displaying main UI
+    st.info("This section will show the 4 dashboard tabs after login.")
+
+# --------- Auth Guard ---------
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+
 if not login():
     st.stop()
 
-# 🖼️ الشعار
-logo = Image.open("logo.png")
-st.sidebar.image(logo, width=120)
-
-# 📚 تحميل البيانات من Excel
-data = pd.read_excel("Superior_SFDA_Tracker.xlsx", sheet_name=None)
-doc_matrix = data.get("Requirements Matrix", pd.DataFrame())
-submission = data.get("Client Submission Tracker", pd.DataFrame())
-gaps = data.get("Gap Analysis", pd.DataFrame())
-
-# 🧭 القائمة الجانبية
-page = st.sidebar.radio("📘 اختر واجهة العرض:", (
-    "🔎 Project Overview",
-    "✅ Workflow Tracker (Editable)",
-    "👁️ Client Summary View",
-    "🧠 Regulatory Gap Analysis"
-))
-
-# 🔎 1. واجهة المشروع العامة
-if page.startswith("🔎"):
-    st.title("🔎 Project Overview")
-    st.markdown("""
-    #### Client: Superior Business Co.  
-    #### Device: Alcohol Swabs  
-    #### Classification: Class I – Rule 1, Annex 5  
-    #### Intended Use: Topical skin disinfection – single use  
-    #### Origin: KSA – Sudair City  
-    #### Submission Pathway: GHAD
-    """)
-    st.markdown("---")
-    st.subheader("📄 Documentation Matrix")
-    st.dataframe(doc_matrix, use_container_width=True)
-
-    st.subheader("📊 Submission Progress")
-    total = submission.shape[0]
-    done = submission[submission["تم استلامها"] == "✅"].shape[0]
-    percent = int((done / total) * 100) if total else 0
-    st.progress(percent / 100)
-    st.write(f"**{percent}% Complete**")
-
-# ✅ 2. التعديل المباشر داخل Workflow Tracker
-elif page.startswith("✅"):
-    st.title("✅ Workflow Tracker (Editable)")
-    editable_df = submission.copy()
-    edited = st.data_editor(editable_df, num_rows="dynamic", use_container_width=True)
-    st.success("📝 You can edit this view directly. Changes are temporary unless saved manually.")
-
-# 👁️ 3. عرض العميل – عرض فقط
-elif page.startswith("👁️"):
-    st.title("👁️ Client Summary View")
-    st.markdown("View-only dashboard for client review.")
-    display = submission[["Document", "تم استلامها", "المراجعة الفنية التنظيمية"]]
-    st.dataframe(display, use_container_width=True)
-
-# 🧠 4. تحليل الفجوات التنظيمية
-elif page.startswith("🧠"):
-    st.title("🧠 Regulatory Gap Analysis")
-    st.dataframe(gaps, use_container_width=True)
-
-# ⚠️ تذييل
-st.markdown("""
----
-<small>🔒 Developed by <strong>BASIER</strong> – SFDA Support Dashboard | Version 1.0</small>
-""", unsafe_allow_html=True)
+main_app()
