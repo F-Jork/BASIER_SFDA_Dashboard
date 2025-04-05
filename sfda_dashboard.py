@@ -1,71 +1,68 @@
 import streamlit as st
 import pandas as pd
-from PIL import Image
 
-st.set_page_config(page_title="SFDA Dashboard", layout="wide")
+# ---------------------------
+# ✅ Page Configuration
+# ---------------------------
+st.set_page_config(page_title="SFDA Dashboard – RA-KSA-2025-041", layout="wide")
 
-# إعداد بيانات المستخدمين
-USERS = {
-    "basier_admin": "sfda2024",
-    "superior_client": "superior2025"
-}
-
-# تسجيل الدخول
-def login_panel():
-    st.sidebar.title("🔐 Login Panel")
-    username = st.sidebar.text_input("Username")
-    password = st.sidebar.text_input("Password", type="password")
-    login_btn = st.sidebar.button("Login")
-
-    if login_btn:
-        if username in USERS and USERS[username] == password:
-            st.session_state.authenticated = True
-            st.session_state.user = username
-            st.success("✅ Login successful.")
-        else:
-            st.error("❌ Invalid username or password.")
-
+# ---------------------------
+# ✅ Session Authentication
+# ---------------------------
 if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
+    st.session_state["authenticated"] = False
 
-if not st.session_state.authenticated:
-    login_panel()
+if not st.session_state["authenticated"]:
+    with st.sidebar:
+        st.markdown("### 🔐 Login Panel")
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        if st.button("Login"):
+            if username == "basier_admin" and password == "sfda2024":
+                st.session_state["authenticated"] = True
+                st.success("✅ Login successful.")
+            else:
+                st.error("❌ Invalid credentials")
     st.stop()
 
-# التطبيق الرئيسي
-def main():
-    logo = Image.open("logo.png")
-    st.sidebar.image(logo, use_column_width=True)
+# ---------------------------
+# ✅ Load Excel Data
+# ---------------------------
+file_path = "Superior_SFDA_Tracker.xlsx"
+sheet_matrix = "Requirements Matrix"
+sheet_submission = "Client Submission Tracker"
+sheet_gap = "Gap Analysis"
 
-    st.markdown("## 📄 SFDA Device Registration Dashboard – RA-KSA-2025-041")
-    st.markdown("""
-    **Client:** Superior Business Co.  
-    **Project:** Alcohol Swabs Registration at SFDA  
-    **Classification:** Class I – Rule 1, Annex 5  
-    **Intended Use:** Topical skin disinfection pre-injection – single use  
-    **Country of Origin:** KSA – Sudair Industrial City  
-    """)
-
-    file_path = "Superior_SFDA_Tracker.xlsx"
-    sheet_matrix = "Documentation Matrix"
-    sheet_submission = "Client Submission"
-    sheet_gaps = "Gap Analysis"
-
+try:
     matrix = pd.read_excel(file_path, sheet_name=sheet_matrix)
     submission = pd.read_excel(file_path, sheet_name=sheet_submission)
-    gaps = pd.read_excel(file_path, sheet_name=sheet_gaps)
+    gap = pd.read_excel(file_path, sheet_name=sheet_gap)
+except Exception as e:
+    st.error(f"❌ Error loading data: {e}")
+    st.stop()
 
-    st.markdown("### 📄 Documentation Matrix by Classification")
-    st.dataframe(matrix, use_container_width=True)
+# ---------------------------
+# ✅ UI Layout
+# ---------------------------
+st.image("logo.png", width=120)
+st.title("📄 SFDA Device Registration Dashboard – RA-KSA-2025-041")
 
-    st.markdown("### 📂 Client Submission Tracker")
-    st.dataframe(submission, use_container_width=True)
+st.markdown("""
+**Client:** Superior Business Co.  
+**Project:** Alcohol Swabs Registration at SFDA  
+**Classification:** Class I – Rule 1, Annex 5  
+**Intended Use:** Topical skin disinfection pre-injection – single use  
+**Country of Origin:** KSA – Sudair Industrial City
+""")
 
-    st.markdown("### 💡 Regulatory Gap Analysis")
-    st.dataframe(gaps, use_container_width=True)
+st.markdown("## 📄 Documentation Matrix by Classification")
+st.dataframe(matrix, use_container_width=True)
 
-    st.markdown("""---  
-🔒 Confidential – Dashboard developed by **BASIER** for regulatory engagement with **SFDA**  
-    """, unsafe_allow_html=True)
+st.markdown("## 📋 Client Submission Tracker")
+st.dataframe(submission, use_container_width=True)
 
-main()
+st.markdown("## 💡 Regulatory Gap Analysis")
+st.dataframe(gap, use_container_width=True)
+
+st.markdown("---")
+st.markdown("🔒 Confidential – Dashboard developed by **BASIER** for regulatory engagement with **SFDA**.")
